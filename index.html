@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>GCSE Geometry Lab Pro - Layout Fixed</title>
+    <title>GCSE Geometry Lab Pro - Final Layout</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -19,7 +19,7 @@
 
         .main-ui {
             flex: 1; width: 96vw; margin: 10px auto; background: #fff;
-            border-radius: 20px; display: grid; grid-template-columns: 1.3fr 0.7fr;
+            border-radius: 20px; display: grid; grid-template-columns: 1.4fr 0.6fr;
             box-shadow: 0 10px 20px rgba(0,0,0,0.3); overflow: hidden;
         }
 
@@ -32,200 +32,11 @@
         .level-btns button { padding: 10px; margin: 2px; background: #444; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
         .level-btns .active-lvl { background: #d4af37; color: black; }
 
-        /* Larger Canvas Box */
-        #shapeCanvas { background: #fdfdfd; border: 2px solid #eee; border-radius: 10px; max-width: 100%; }
+        #shapeCanvas { background: #fdfdfd; border: 2px solid #eee; border-radius: 10px; }
 
         input { width: 120px; font-size: 2rem; border: 4px solid #d4af37; border-radius: 10px; text-align: center; font-weight: bold; }
         .check-btn { width: 85%; padding: 15px; background: #1b5e20; color: #fff; font-size: 1.6rem; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; }
 
         .guide-box { padding: 20px; background: #f4f4f2; overflow-y: auto; }
         .step { background: #fff; padding: 10px; margin-bottom: 8px; border-left: 6px solid #d4af37; font-size: 1rem; }
-        #feedback { font-size: 2rem; font-weight: bold; margin-top: 5px; text-align: center; height: 45px; }
-        .reveal-btn { background: #444; color: white; border: none; padding: 10px; margin-top: 5px; cursor: pointer; width: 100%; border-radius: 5px; font-weight: bold; }
-    </style>
-</head>
-<body>
-
-    <div class="timer-zone">
-        <button class="timer-btn" onclick="changeTime(-30)">-30s</button>
-        <span id="clock" style="font-size: 2rem; font-family: monospace;">02:00</span>
-        <button class="timer-btn" onclick="changeTime(30)">+30s</button>
-        <button class="timer-btn" id="run-btn" onclick="toggleClock()" style="background:#27ae60; color:white;">START</button>
-        <button class="timer-btn" onclick="resetClock()" style="background:#c0392b; color:white;">RESET</button>
-    </div>
-
-    <div class="main-ui">
-        <div class="problem-box">
-            <div class="shape-selector">
-                <button class="shape-btn active" onclick="setShape('square', this)">SQUARE</button>
-                <button class="shape-btn" onclick="setShape('triangle', this)">TRIANGLE</button>
-                <button class="shape-btn" onclick="setShape('parallelogram', this)">PARALLELOGRAM</button>
-                <button class="shape-btn" onclick="setShape('trapezium', this)">TRAPEZIUM</button>
-            </div>
-
-            <div class="level-btns">
-                <button id="lvl1" onclick="setLevel(1)" class="active-lvl">LEVEL 1</button>
-                <button id="lvl2" onclick="setLevel(2)">LEVEL 2</button>
-                <button id="lvl3" onclick="setLevel(3)">LEVEL 3</button>
-            </div>
-
-            <h2 id="task-name" style="margin:5px; color:#1b5e20; font-size: 1.1rem; text-transform: uppercase;">Find the Area</h2>
-
-            <canvas id="shapeCanvas" width="450" height="240"></canvas>
-
-            <div style="font-size: 1.4rem;">
-                Answer: <input type="number" id="userIn"> <span id="unit-label">cm²</span>
-            </div>
-
-            <button class="check-btn" onclick="checkAnswer()">CHECK ANSWER</button>
-            <div id="feedback"></div>
-        </div>
-
-        <div class="guide-box">
-            <h3 style="color:#1b5e20; border-bottom:2px solid #d4af37; margin-top:0;">Method</h3>
-            <div id="formula-step" class="step">Area = Base x Height</div>
-            
-            <button class="reveal-btn" onclick="showHint()">Hint</button>
-            <div id="hint-txt" class="step" style="display:none; background:#e8f5e9; margin-top:10px;"></div>
-            
-            <button class="reveal-btn" onclick="showAnswer()">Reveal Answer</button>
-            <div id="ans-txt" class="step" style="display:none; background:#fff3cd; margin-top:10px;"></div>
-        </div>
-    </div>
-
-<script>
-    let currentShape = 'square';
-    let currentLvl = 1;
-    let goal = 0, time = 120, ticker = null;
-    let bVal, hVal, topVal, areaVal;
-
-    const canvas = document.getElementById('shapeCanvas');
-    const ctx = canvas.getContext('2d');
-
-    function setShape(type, btn) {
-        currentShape = type;
-        document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        generate();
-    }
-
-    function setLevel(n) {
-        currentLvl = n;
-        document.querySelectorAll('.level-btns button').forEach(b => b.classList.remove('active-lvl'));
-        document.getElementById('lvl' + n).classList.add('active-lvl');
-        generate();
-    }
-
-    function drawDimension(x1, y1, x2, y2, label, offset, isVertical) {
-        ctx.save();
-        ctx.strokeStyle = "red";
-        ctx.setLineDash([5, 5]);
-        ctx.lineWidth = 1;
-        
-        ctx.beginPath();
-        if (isVertical) {
-            ctx.moveTo(x1, y1); ctx.lineTo(x1 - offset, y1);
-            ctx.moveTo(x2, y2); ctx.lineTo(x2 - offset, y2);
-        } else {
-            ctx.moveTo(x1, y1); ctx.lineTo(x1, y1 + offset);
-            ctx.moveTo(x2, y2); ctx.lineTo(x2, y2 + offset);
-        }
-        ctx.stroke();
-
-        ctx.fillStyle = "red";
-        ctx.font = "bold 15px Arial";
-        if (isVertical) {
-            // Push text further right so it doesn't hit the left canvas wall
-            ctx.fillText(label, x1 - offset - 95, (y1 + y2) / 2 + 5);
-        } else {
-            ctx.fillText(label, (x1 + x2) / 2 - 35, y1 + offset + 20);
-        }
-        ctx.restore();
-    }
-
-    function generate() {
-        document.getElementById('feedback').innerText = "";
-        document.getElementById('hint-txt').style.display = "none";
-        document.getElementById('ans-txt').style.display = "none";
-        document.getElementById('userIn').value = "";
-        ctx.clearRect(0,0,450,240);
-        
-        ctx.strokeStyle = "#333";
-        ctx.lineWidth = 3;
-        ctx.fillStyle = "#1b5e2011";
-
-        bVal = Math.floor(Math.random() * 8) + 4;
-        hVal = Math.floor(Math.random() * 5) + 3;
-        topVal = Math.floor(Math.random() * 3) + 2; 
-
-        if (currentShape === 'square') {
-            areaVal = bVal * bVal;
-            document.getElementById('formula-step').innerText = "Area = Side x Side";
-        } else if (currentShape === 'triangle') {
-            areaVal = (bVal * hVal) / 2;
-            document.getElementById('formula-step').innerText = "Area = (Base x Height) ÷ 2";
-        } else if (currentShape === 'parallelogram') {
-            areaVal = bVal * hVal;
-            document.getElementById('formula-step').innerText = "Area = Base x Height";
-        } else if (currentShape === 'trapezium') {
-            areaVal = ((topVal + bVal) / 2) * hVal;
-            document.getElementById('formula-step').innerText = "Area = ((a + b) ÷ 2) x h";
-        }
-
-        let bLabel = "Base: " + bVal;
-        if (currentLvl === 3) {
-            bLabel = "Base: ?";
-            document.getElementById('task-name').innerText = "Find the missing Base";
-            document.getElementById('feedback').innerText = "Area = " + areaVal + "cm²";
-            document.getElementById('unit-label').innerText = "cm";
-            goal = bVal;
-        } else {
-            document.getElementById('task-name').innerText = "Find the Area";
-            document.getElementById('unit-label').innerText = "cm²";
-            goal = areaVal;
-        }
-
-        // Adjusted Drawing Coordinates to be more central
-        if (currentShape === 'square') {
-            ctx.strokeRect(180, 50, 100, 100); ctx.fillRect(180, 50, 100, 100);
-            drawDimension(180, 150, 280, 150, bLabel, 30, false);
-            drawDimension(180, 50, 180, 150, "Height: " + bVal, 40, true);
-        } else if (currentShape === 'triangle') {
-            ctx.beginPath(); ctx.moveTo(140, 150); ctx.lineTo(320, 150); ctx.lineTo(230, 50); ctx.closePath(); ctx.stroke(); ctx.fill();
-            drawDimension(140, 150, 320, 150, bLabel, 30, false);
-            ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(230,50); ctx.lineTo(230,150); ctx.stroke();
-            drawDimension(230, 50, 230, 150, "Height: " + hVal, 100, true);
-        } else if (currentShape === 'parallelogram') {
-            ctx.beginPath(); ctx.moveTo(160, 50); ctx.lineTo(340, 50); ctx.lineTo(300, 150); ctx.lineTo(120, 150); ctx.closePath(); ctx.stroke(); ctx.fill();
-            drawDimension(120, 150, 300, 150, bLabel, 30, false);
-            ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(160,50); ctx.lineTo(160,150); ctx.stroke();
-            drawDimension(160, 50, 160, 150, "Height: " + hVal, 50, true);
-        } else if (currentShape === 'trapezium') {
-            ctx.beginPath(); ctx.moveTo(180, 50); ctx.lineTo(280, 50); ctx.lineTo(340, 150); ctx.lineTo(120, 150); ctx.closePath(); ctx.stroke(); ctx.fill();
-            drawDimension(120, 150, 340, 150, bLabel, 30, false);
-            drawDimension(180, 50, 280, 50, "Top: " + topVal, -25, false);
-            ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(180,50); ctx.lineTo(180,150); ctx.stroke();
-            drawDimension(180, 50, 180, 150, "Height: " + hVal, 60, true);
-        }
-
-        document.getElementById('ans-txt').innerText = "Correct Answer: " + goal;
-    }
-
-    function checkAnswer() {
-        let u = parseFloat(document.getElementById('userIn').value);
-        let f = document.getElementById('feedback');
-        if (u === goal) { f.innerText = "✅ CORRECT!"; f.style.color = "green"; }
-        else { f.innerText = "❌ TRY AGAIN"; f.style.color = "red"; }
-    }
-
-    function updateClock() { let m = Math.floor(time/60), s = time%60; document.getElementById('clock').innerText = m.toString().padStart(2,'0')+":"+s.toString().padStart(2,'0'); }
-    function toggleClock() { if(ticker){clearInterval(ticker); ticker=null; document.getElementById('run-btn').innerText="START";} else {ticker=setInterval(()=>{if(time>0){time--; updateClock();}},1000); document.getElementById('run-btn').innerText="PAUSE";}}
-    function changeTime(n) { time = Math.max(0, time+n); updateClock(); }
-    function resetClock() { clearInterval(ticker); ticker=null; time=120; updateClock(); document.getElementById('run-btn').innerText="START"; }
-    function showHint() { let x = document.getElementById('hint-txt'); x.style.display = (x.style.display==="none")?"block":"none"; x.innerText = "Use the formula: " + document.getElementById('formula-step').innerText; }
-    function showAnswer() { let x = document.getElementById('ans-txt'); x.style.display = (x.style.display==="none")?"block":"none"; }
-
-    updateClock(); generate();
-</script>
-</body>
-</html>
+        #feedback { font
