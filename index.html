@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GCSE Geometry Lab</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column;
+            background: linear-gradient(135deg, #d4af37 0%, #1b5e20 100%);
+            font-family: 'Arial Black', sans-serif; overflow: hidden;
+        }
+
+        .timer-zone {
+            flex: 0 0 auto; background: #000; color: #f1c40f; padding: 10px;
+            display: flex; justify-content: center; align-items: center; gap: 15px;
+        }
+        .timer-btn { background: #d4af37; border: none; padding: 8px 15px; cursor: pointer; font-weight: bold; border-radius: 5px; }
+
+        .main-ui {
+            flex: 1; width: 96vw; margin: 10px auto; background: #fff;
+            border-radius: 15px; display: grid; grid-template-columns: 1.2fr 0.8fr;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3); overflow: hidden;
+        }
+
+        .problem-box { padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: space-around; border-right: 2px solid #ddd; }
+        
+        .shape-selector { margin-bottom: 10px; display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
+        .shape-btn { padding: 8px 12px; background: #eee; border: 2px solid #ccc; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        .shape-btn.active { background: #1b5e20; color: white; border-color: #d4af37; }
+
+        .level-btns button { padding: 10px; margin: 2px; background: #444; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+        .level-btns .active-lvl { background: #d4af37; color: black; }
+
+        /* Canvas for drawing shapes */
+        #shapeCanvas { background: #fdfdfd; border: 2px dashed #ccc; border-radius: 10px; }
+
+        input { width: 120px; font-size: 2rem; text-align: center; border: 4px solid #d4af37; border-radius: 10px; }
+        .check-btn { width: 85%; padding: 15px; background: #1b5e20; color: #fff; font-size: 1.6rem; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; }
+
+        .guide-box { padding: 20px; background: #f9f9f9; overflow-y: auto; }
+        .step { background: #fff; padding: 10px; margin-bottom: 8px; border-left: 6px solid #d4af37; font-size: 1rem; }
+        #feedback { font-size: 2.2rem; font-weight: bold; margin-top: 5px; text-align: center; height: 45px; }
+    </style>
+</head>
+<body>
+
+    <div class="timer-zone">
+        <button class="timer-btn" onclick="changeTime(-30)">-30s</button>
+        <span id="clock" style="font-size: 2rem; font-family: monospace;">02:00</span>
+        <button class="timer-btn" onclick="changeTime(30)">+30s</button>
+        <button class="timer-btn" id="run-btn" onclick="toggleClock()" style="background:#27ae60; color:white;">START</button>
+        <button class="timer-btn" onclick="resetClock()" style="background:#c0392b; color:white;">RESET</button>
+    </div>
+
+    <div class="main-ui">
+        <div class="problem-box">
+            <div class="shape-selector">
+                <button class="shape-btn active" onclick="setShape('square', this)">SQUARE</button>
+                <button class="shape-btn" onclick="setShape('triangle', this)">TRIANGLE</button>
+                <button class="shape-btn" onclick="setShape('parallelogram', this)">PARALLELOGRAM</button>
+                <button class="shape-btn" onclick="setShape('trapezium', this)">TRAPEZIUM</button>
+            </div>
+
+            <div class="level-btns">
+                <button id="lvl1" onclick="setLevel(1)" class="active-lvl">LEVEL 1</button>
+                <button id="lvl2" onclick="setLevel(2)">LEVEL 2</button>
+                <button id="lvl3" onclick="setLevel(3)">LEVEL 3</button>
+            </div>
+
+            <h2 id="task-name" style="margin:5px; color:#1b5e20; font-size: 1.2rem;">Find the Area</h2>
+
+            <canvas id="shapeCanvas" width="300" height="180"></canvas>
+
+            <div style="font-size: 1.5rem;">
+                Answer: <input type="number" id="userIn"> cm²
+            </div>
+
+            <button class="check-btn" onclick="checkAnswer()">CHECK ANSWER</button>
+            <div id="feedback"></div>
+        </div>
+
+        <div class="guide-box">
+            <h3 id="formula-title" style="color:#1b5e20; border-bottom:2px solid #d4af37; margin-top:0;">Formula</h3>
+            <div id="formula-step" class="step">Area = Base x Height</div>
+            
+            <button onclick="showHint()" style="width:100%; padding:10px; cursor:pointer; font-weight:bold;">Hint</button>
+            <div id="hint-txt" class="step" style="display:none; background:#e8f5e9;"></div>
+            
+            <button onclick="showAnswer()" style="width:100%; padding:10px; margin-top:5px; cursor:pointer; font-weight:bold;">Reveal Answer</button>
+            <div id="ans-txt" class="step" style="display:none; background:#fff3cd;"></div>
+        </div>
+    </div>
+
+<script>
+    let currentShape = 'square';
+    let currentLvl = 1;
+    let goal = 0;
+    let time = 120, ticker = null;
+
+    // Canvas Setup
+    const canvas = document.getElementById('shapeCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function setShape(type, btn) {
+        currentShape = type;
+        document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        generate();
+    }
+
+    function setLevel(n) {
+        currentLvl = n;
+        document.querySelectorAll('.level-btns button').forEach(b => b.classList.remove('active-lvl'));
+        document.getElementById('lvl' + n).classList.add('active-lvl');
+        generate();
+    }
+
+    function generate() {
+        document.getElementById('feedback').innerText = "";
+        document.getElementById('hint-txt').style.display = "none";
+        document.getElementById('ans-txt').style.display = "none";
+        document.getElementById('userIn').value = "";
+        ctx.clearRect(0,0,300,180);
+        ctx.strokeStyle = "#333";
+        ctx.lineWidth = 4;
+        ctx.fillStyle = "#1b5e2022";
+
+        let b = Math.floor(Math.random() * 8) + 4;
+        let h = Math.floor(Math.random() * 5) + 3;
+        let a = Math.floor(Math.random() * 3) + 2; // for trapezium top
+        
+        let label1 = b, label2 = h, label3 = "";
+        
+        if (currentShape === 'square') {
+            ctx.strokeRect(100, 40, 100, 100);
+            ctx.fillRect(100, 40, 100, 100);
+            document.getElementById('formula-step').innerText = "Area = Side x Side";
+            goal = b * b; label1 = b; label2 = b;
+        } else if (currentShape === 'triangle') {
+            ctx.beginPath(); ctx.moveTo(50, 140); ctx.lineTo(250, 140); ctx.lineTo(150, 40); ctx.closePath(); ctx.stroke(); ctx.fill();
+            document.getElementById('formula-step').innerText = "Area = (Base x Height) ÷ 2";
+            goal = (b * h) / 2;
+        } else if (currentShape === 'parallelogram') {
+            ctx.beginPath(); ctx.moveTo(70, 40); ctx.lineTo(230, 40); ctx.lineTo(200, 140); ctx.lineTo(40, 140); ctx.closePath(); ctx.stroke(); ctx.fill();
+            document.getElementById('formula-step').innerText = "
