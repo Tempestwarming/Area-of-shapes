@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>GCSE Geometry Lab</title>
+    <title>GCSE Geometry Lab Pro</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -32,7 +32,7 @@
         .level-btns button { padding: 10px; margin: 2px; background: #444; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
         .level-btns .active-lvl { background: #d4af37; color: black; }
 
-        #shapeCanvas { background: #fdfdfd; border: 2px dashed #ccc; border-radius: 10px; }
+        #shapeCanvas { background: #fdfdfd; border: 2px solid #eee; border-radius: 10px; }
 
         input { width: 120px; font-size: 2rem; text-align: center; border: 4px solid #d4af37; border-radius: 10px; }
         .check-btn { width: 85%; padding: 15px; background: #1b5e20; color: #fff; font-size: 1.6rem; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; }
@@ -69,7 +69,7 @@
 
             <h2 id="task-name" style="margin:5px; color:#1b5e20; font-size: 1.2rem;">Find the Area</h2>
 
-            <canvas id="shapeCanvas" width="300" height="180"></canvas>
+            <canvas id="shapeCanvas" width="380" height="220"></canvas>
 
             <div style="font-size: 1.5rem;">
                 Answer: <input type="number" id="userIn"> cm²
@@ -114,55 +114,90 @@
         generate();
     }
 
+    function drawDimension(x1, y1, x2, y2, label, offset, isVertical) {
+        ctx.save();
+        ctx.strokeStyle = "red";
+        ctx.setLineDash([5, 5]);
+        ctx.lineWidth = 1;
+        
+        // Draw the dashed extension lines
+        ctx.beginPath();
+        if (isVertical) {
+            ctx.moveTo(x1, y1); ctx.lineTo(x1 - offset, y1);
+            ctx.moveTo(x2, y2); ctx.lineTo(x2 - offset, y2);
+        } else {
+            ctx.moveTo(x1, y1); ctx.lineTo(x1, y1 + offset);
+            ctx.moveTo(x2, y2); ctx.lineTo(x2, y2 + offset);
+        }
+        ctx.stroke();
+
+        // Draw the label
+        ctx.fillStyle = "red";
+        ctx.font = "bold 16px Arial";
+        if (isVertical) {
+            ctx.fillText(label, x1 - offset - 70, (y1 + y2) / 2);
+        } else {
+            ctx.fillText(label, (x1 + x2) / 2 - 20, y1 + offset + 20);
+        }
+        ctx.restore();
+    }
+
     function generate() {
         document.getElementById('feedback').innerText = "";
         document.getElementById('hint-txt').style.display = "none";
         document.getElementById('ans-txt').style.display = "none";
         document.getElementById('userIn').value = "";
-        ctx.clearRect(0,0,300,180);
-        ctx.strokeStyle = "#333";
-        ctx.lineWidth = 4;
-        ctx.fillStyle = "#1b5e2022";
-
-        let b = Math.floor(Math.random() * 8) + 4;
-        let h = Math.floor(Math.random() * 5) + 3;
-        let a = Math.floor(Math.random() * 3) + 2; 
+        ctx.clearRect(0,0,380,220);
         
-        let label1 = b, label2 = h, label3 = "";
+        ctx.strokeStyle = "#333";
+        ctx.lineWidth = 3;
+        ctx.fillStyle = "#1b5e2011";
+
+        let bVal = Math.floor(Math.random() * 8) + 4;
+        let hVal = Math.floor(Math.random() * 5) + 3;
+        let topVal = Math.floor(Math.random() * 3) + 2; 
         
         if (currentShape === 'square') {
-            ctx.strokeRect(100, 40, 100, 100);
-            ctx.fillRect(100, 40, 100, 100);
+            ctx.strokeRect(140, 40, 100, 100);
+            ctx.fillRect(140, 40, 100, 100);
+            drawDimension(140, 140, 240, 140, "Base: " + bVal, 30, false);
+            drawDimension(140, 40, 140, 140, "Side: " + bVal, 30, true);
             document.getElementById('formula-step').innerText = "Area = Side x Side";
-            goal = b * b; label1 = b; label2 = b;
+            goal = bVal * bVal;
         } else if (currentShape === 'triangle') {
-            ctx.beginPath(); ctx.moveTo(50, 140); ctx.lineTo(250, 140); ctx.lineTo(150, 40); ctx.closePath(); ctx.stroke(); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(100, 140); ctx.lineTo(280, 140); ctx.lineTo(190, 40); ctx.closePath(); ctx.stroke(); ctx.fill();
+            drawDimension(100, 140, 280, 140, "Base: " + bVal, 30, false);
+            // Vertical Height Line
+            ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(190,40); ctx.lineTo(190,140); ctx.stroke();
+            drawDimension(190, 40, 190, 140, "Height: " + hVal, 110, true);
             document.getElementById('formula-step').innerText = "Area = (Base x Height) ÷ 2";
-            goal = (b * h) / 2;
+            goal = (bVal * hVal) / 2;
         } else if (currentShape === 'parallelogram') {
-            ctx.beginPath(); ctx.moveTo(70, 40); ctx.lineTo(230, 40); ctx.lineTo(200, 140); ctx.lineTo(40, 140); ctx.closePath(); ctx.stroke(); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(120, 40); ctx.lineTo(300, 40); ctx.lineTo(260, 140); ctx.lineTo(80, 140); ctx.closePath(); ctx.stroke(); ctx.fill();
+            drawDimension(80, 140, 260, 140, "Base: " + bVal, 30, false);
+            // Vertical Height
+            ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(120,40); ctx.lineTo(120,140); ctx.stroke();
+            drawDimension(120, 40, 120, 140, "Height: " + hVal, 60, true);
             document.getElementById('formula-step').innerText = "Area = Base x Vertical Height";
-            goal = b * h;
+            goal = bVal * hVal;
         } else if (currentShape === 'trapezium') {
-            ctx.beginPath(); ctx.moveTo(100, 40); ctx.lineTo(200, 40); ctx.lineTo(250, 140); ctx.lineTo(50, 140); ctx.closePath(); ctx.stroke(); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(140, 40); ctx.lineTo(240, 40); ctx.lineTo(300, 140); ctx.lineTo(80, 140); ctx.closePath(); ctx.stroke(); ctx.fill();
+            drawDimension(80, 140, 300, 140, "Base: " + bVal, 30, false);
+            drawDimension(140, 40, 240, 40, "Top: " + topVal, -25, false);
+            // Vertical Height
+            ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(140,40); ctx.lineTo(140,140); ctx.stroke();
+            drawDimension(140, 40, 140, 140, "Height: " + hVal, 80, true);
             document.getElementById('formula-step').innerText = "Area = ((a + b) ÷ 2) x h";
-            goal = ((a + b) / 2) * h;
-            label3 = a;
+            goal = ((topVal + bVal) / 2) * hVal;
         }
-
-        ctx.fillStyle = "black"; ctx.font = "bold 18px Arial";
-        ctx.fillText("Base: " + b, 110, 165);
-        ctx.fillText("Height: " + h, 10, 90);
-        if(label3) ctx.fillText("Top: " + a, 110, 30);
 
         if (currentLvl === 3) {
             document.getElementById('task-name').innerText = "Find the missing Base";
             document.getElementById('feedback').innerText = "Area is " + goal;
-            goal = b;
+            goal = bVal;
         } else {
             document.getElementById('task-name').innerText = "Find the Area";
         }
-
         document.getElementById('ans-txt').innerText = "Answer: " + goal;
     }
 
