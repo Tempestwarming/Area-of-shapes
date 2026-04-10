@@ -87,4 +87,70 @@
             <h3 style="color:#1b5e20; border-bottom:2px solid #d4af37; margin-top:0;">The Method</h3>
             <div class="step">1. <b>Midpoint:</b> Find the middle of the interval (Add them and divide by 2).</div>
             <div class="step">2. <b>Multiply:</b> Multiply Frequency by Midpoint for each row.</div>
-            <div class="step">3. <b>Totals:</b> Add
+            <div class="step">3. <b>Totals:</b> Add up the Frequency column AND the fx column.</div>
+            <div class="step">4. <b>Divide:</b> Final Total fx ÷ Total Frequency.</div>
+            
+            <button onclick="revealAns()" style="width:100%; padding:10px; cursor:pointer; font-weight:bold; border-radius:5px;">Reveal Answer</button>
+            <div id="ans-txt" class="step" style="display:none; background:#fff3cd; margin-top:10px;"></div>
+        </div>
+    </div>
+
+<script>
+    let rows = [], correctMean = 0, time = 180, ticker = null;
+
+    function generate(lv) {
+        const body = document.getElementById('tableBody');
+        body.innerHTML = "";
+        document.getElementById('feedback').innerText = "";
+        document.getElementById('finalMean').value = "";
+        document.getElementById('ans-txt').style.display = "none";
+        
+        rows = [];
+        let totalFX = 0, totalF = 0;
+        let intervalSize = (lv === 1) ? 10 : (lv === 2) ? 4 : 20;
+
+        for (let i = 0; i < 4; i++) {
+            let start = i * intervalSize;
+            let end = (i + 1) * intervalSize;
+            let mid = (start + end) / 2;
+            let freq = Math.floor(Math.random() * 10) + 2;
+            
+            rows.push({ mid, freq, fx: mid * freq });
+            totalF += freq;
+            totalFX += (mid * freq);
+
+            body.innerHTML += `
+                <tr>
+                    <td>${start} < t ≤ ${end}</td>
+                    <td>${freq}</td>
+                    <td class="input-cell"><input type="number" class="row-mid" data-idx="${i}" step="0.1"></td>
+                    <td class="input-cell"><input type="number" class="row-fx" data-idx="${i}" step="0.1"></td>
+                </tr>
+            `;
+        }
+        correctMean = (totalFX / totalF).toFixed(1);
+        document.getElementById('ans-txt').innerText = "Total fx: " + totalFX + "\nTotal f: " + totalF + "\nMean: " + correctMean;
+    }
+
+    function check() {
+        let userMean = parseFloat(document.getElementById('finalMean').value);
+        let f = document.getElementById('feedback');
+        
+        if (userMean == correctMean) {
+            f.innerText = "✅ CORRECT!"; f.style.color = "green";
+        } else {
+            f.innerText = "❌ TRY AGAIN"; f.style.color = "red";
+        }
+    }
+
+    // Timer logic
+    function updateClock() { let m = Math.floor(time/60), s = time%60; document.getElementById('clock').innerText = m.toString().padStart(2,'0')+":"+s.toString().padStart(2,'0'); }
+    function toggleClock() { if(ticker){clearInterval(ticker); ticker=null; document.getElementById('run-btn').innerText="START";} else {ticker=setInterval(()=>{if(time>0){time--; updateClock();}},1000); document.getElementById('run-btn').innerText="PAUSE";}}
+    function changeTime(n) { time = Math.max(0, time+n); updateClock(); }
+    function resetClock() { clearInterval(ticker); ticker=null; time=180; updateClock(); document.getElementById('run-btn').innerText="START"; }
+    function revealAns() { let x = document.getElementById('ans-txt'); x.style.display = (x.style.display==="none")?"block":"none"; }
+
+    updateClock(); generate(1);
+</script>
+</body>
+</html>
