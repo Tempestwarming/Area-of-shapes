@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>GCSE Geometry Lab Pro - Final Layout</title>
+    <title>GCSE Estimated Mean Tool</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -18,25 +18,73 @@
         .timer-btn { background: #d4af37; border: none; padding: 8px 15px; cursor: pointer; font-weight: bold; border-radius: 5px; }
 
         .main-ui {
-            flex: 1; width: 96vw; margin: 10px auto; background: #fff;
+            flex: 1; width: 98vw; margin: 10px auto; background: #fff;
             border-radius: 20px; display: grid; grid-template-columns: 1.4fr 0.6fr;
             box-shadow: 0 10px 20px rgba(0,0,0,0.3); overflow: hidden;
         }
 
-        .problem-box { padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: space-around; border-right: 2px solid #ddd; }
+        .problem-box { padding: 20px; display: flex; flex-direction: column; align-items: center; background: white; border-right: 2px solid #ddd; overflow-y: auto;}
         
-        .shape-selector { margin-bottom: 10px; display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
-        .shape-btn { padding: 8px 12px; background: #eee; border: 2px solid #ccc; cursor: pointer; border-radius: 5px; font-weight: bold; font-size: 0.8rem; }
-        .shape-btn.active { background: #1b5e20; color: white; border-color: #d4af37; }
+        table { border-collapse: collapse; width: 95%; margin-top: 10px; font-size: 1.1rem; }
+        th { background: #1b5e20; color: white; padding: 12px; border: 1px solid #ddd; }
+        td { padding: 10px; border: 1px solid #ddd; text-align: center; }
+        .input-cell { background: #fff9e6; }
+        
+        input { width: 80px; padding: 5px; font-size: 1.2rem; border: 2px solid #d4af37; border-radius: 5px; text-align: center; font-weight: bold; }
+        .final-input { width: 120px; border-width: 4px; margin-top: 10px; }
 
-        .level-btns button { padding: 10px; margin: 2px; background: #444; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
-        .level-btns .active-lvl { background: #d4af37; color: black; }
-
-        #shapeCanvas { background: #fdfdfd; border: 2px solid #eee; border-radius: 10px; }
-
-        input { width: 120px; font-size: 2rem; border: 4px solid #d4af37; border-radius: 10px; text-align: center; font-weight: bold; }
-        .check-btn { width: 85%; padding: 15px; background: #1b5e20; color: #fff; font-size: 1.6rem; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; }
+        .check-btn { width: 80%; padding: 15px; background: #1b5e20; color: #fff; font-size: 1.5rem; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; margin-top: 15px; }
 
         .guide-box { padding: 20px; background: #f4f4f2; overflow-y: auto; }
-        .step { background: #fff; padding: 10px; margin-bottom: 8px; border-left: 6px solid #d4af37; font-size: 1rem; }
-        #feedback { font
+        .step { background: #fff; padding: 10px; margin-bottom: 8px; border-left: 6px solid #d4af37; font-size: 0.95rem; }
+        #feedback { font-size: 1.8rem; font-weight: bold; margin-top: 10px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div class="timer-zone">
+        <button class="timer-btn" onclick="changeTime(-30)">-30s</button>
+        <span id="clock" style="font-size: 2rem; font-family: monospace;">03:00</span>
+        <button class="timer-btn" onclick="changeTime(30)">+30s</button>
+        <button class="timer-btn" id="run-btn" onclick="toggleClock()" style="background:#27ae60; color:white;">START</button>
+        <button class="timer-btn" onclick="resetClock()" style="background:#c0392b; color:white;">RESET</button>
+    </div>
+
+    <div class="main-ui">
+        <div class="problem-box">
+            <div style="margin-bottom: 10px;">
+                <button onclick="generate(1)">LEVEL 1</button>
+                <button onclick="generate(2)">LEVEL 2</button>
+                <button onclick="generate(3)">LEVEL 3</button>
+            </div>
+
+            <h2 style="margin:0; color:#1b5e20; font-size: 1.2rem;">Calculate the Estimated Mean</h2>
+
+            <table id="freqTable">
+                <thead>
+                    <tr>
+                        <th>Class Interval</th>
+                        <th>Frequency (f)</th>
+                        <th>Midpoint (x)</th>
+                        <th>f × x</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    </tbody>
+            </table>
+
+            <div style="margin-top: 20px; text-align: center; background: #eee; padding: 15px; border-radius: 10px; width: 95%;">
+                <strong>Final Estimated Mean = </strong>
+                <input type="number" id="finalMean" class="final-input" step="0.1">
+                <p style="font-size: 0.8rem; margin: 5px 0 0 0;">(Total f×x ÷ Total Frequency)</p>
+            </div>
+
+            <button class="check-btn" onclick="check()">CHECK ANSWER</button>
+            <div id="feedback"></div>
+        </div>
+
+        <div class="guide-box">
+            <h3 style="color:#1b5e20; border-bottom:2px solid #d4af37; margin-top:0;">The Method</h3>
+            <div class="step">1. <b>Midpoint:</b> Find the middle of the interval (Add them and divide by 2).</div>
+            <div class="step">2. <b>Multiply:</b> Multiply Frequency by Midpoint for each row.</div>
+            <div class="step">3. <b>Totals:</b> Add
